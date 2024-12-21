@@ -1,0 +1,7 @@
+cv2
+opencv-python
+pyaudio
+pillow
+gunicorn
+google-generativeai==0.4.0
+python-dotenv
