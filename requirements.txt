@@ -1,3 +1,4 @@
+asyncio
 cv2
 opencv-python
 pyaudio
