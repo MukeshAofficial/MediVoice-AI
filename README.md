@@ -6,5 +6,4 @@ MediVoice AI is an AI-powered healthcare assistant designed to provide immediate
 
 - **Voice-to-Voice Interaction**: Quickly describe symptoms or injuries and receive immediate first-aid advice and medical suggestions.
 - **Live Video Consultation**: Engage in real-time video consultations with an AI assistant, analyzing physical mobility or symptoms, images (X-rays, injury photos) for AI analysis to suggest possible conditions like sprains or fractures.
-- **Offline Voice Call**: Access healthcare advice even without internet connectivity, ideal for remote areas.
 - **Chatbot**: Get quick responses to various health queries with instant guidance and medical insights.
