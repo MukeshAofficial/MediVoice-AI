@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediVoice AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hover-float:hover {
+            animation: float 0.4s ease-in-out;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-blue-900 to-blue-700 min-h-screen">
+    <!-- Navigation Bar -->
+    <nav class="bg-blue-900 py-4 px-6 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-white text-xl font-bold">MediVoice</a>
+            <div class="space-x-4">
+                <a href="/login" class="text-white hover:text-blue-200">Login</a>
+                <a href="/signup" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative overflow-hidden">
+        <div class="container mx-auto px-4 py-16">
+            <div class="text-center fade-in">
+                <h1 class="text-5xl md:text-6xl font-bold text-white mb-6">MediVoice AI Assistant</h1>
+                <p class="text-xl text-blue-100 mb-8">Your Personal AI-Powered Healthcare Companion</p>
+                <blockquote class="text-blue-200 italic text-lg mb-12">
+                    "Revolutionizing healthcare through artificial intelligence - making medical assistance accessible to everyone, anywhere, anytime."
+                </blockquote>
+                <a href="#services" class="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-blue-50 transition-colors duration-300">
+                    Explore Our Services
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Section -->
+    <div id="services" class="container mx-auto px-4 py-16">
+        <h2 class="text-3xl font-bold text-white text-center mb-12 fade-in">Our Services</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Live Voice Consultation Card -->
+            <a href="/live" class="bg-white rounded-lg shadow-xl p-6 hover:transform hover:scale-105 transition-transform duration-300 hover-float">
+                <div class="flex items-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                    <h2 class="text-xl font-semibold text-gray-800 ml-3">Voice Consultation</h2>
+                </div>
+                <p class="text-gray-600">Speak with our AI medical assistant for instant health guidance</p>
+            </a>
+
+            <!-- Video Consultation Card -->
+            <a href="/video" class="bg-white rounded-lg shadow-xl p-6 hover:transform hover:scale-105 transition-transform duration-300 hover-float">
+                <div class="flex items-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <h2 class="text-xl font-semibold text-gray-800 ml-3">Video Consultation</h2>
+                </div>
+                <p class="text-gray-600">Live video consultations with our AI medical professional</p>
+            </a>
+
+            <!-- Chatbot Card -->
+            <a href="/chatbot" class="bg-white rounded-lg shadow-xl p-6 hover:transform hover:scale-105 transition-transform duration-300 hover-float">
+                <div class="flex items-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    <h2 class="text-xl font-semibold text-gray-800 ml-3">Medical Chatbot</h2>
+                </div>
+                <p class="text-gray-600">Chat with our AI for quick medical information</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="container mx-auto px-4 py-16">
+        <h2 class="text-3xl font-bold text-white text-center mb-12 fade-in">Frequently Asked Questions</h2>
+        
+        <div class="max-w-3xl mx-auto space-y-6">
+            <div class="bg-white rounded-lg p-6 shadow-xl fade-in">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">What can I do with Voice Consultation?</h3>
+                <p class="text-gray-600">Voice consultation allows you to speak naturally with our AI system about your symptoms and receive instant medical guidance and recommendations.</p>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 shadow-xl fade-in">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">How does Video Consultation work?</h3>
+                <p class="text-gray-600">Connect with our AI medical professional through live video for personalized healthcare consultations and medical advice from the comfort of your home.</p>
+            </div>
+
+            <div class="bg-white rounded-lg p-6 shadow-xl fade-in">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">How can the Medical Chatbot help me?</h3>
+                <p class="text-gray-600">The chatbot provides 24/7 access to medical information, can answer health-related questions, and help you understand medical terminology and conditions.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-16 text-center text-blue-100 pb-8">
+        <p class="text-sm">© 2024 MediVoice AI Assistant. All rights reserved.</p>
+        <p class="text-xs mt-2">For medical emergencies, please call your local emergency services.</p>
+    </footer>
+
+    <script>
+        // Add fade-in effect to elements as they scroll into view
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach((element) => {
+            observer.observe(element);
+        });
+    </script>
+</body>
+</html>

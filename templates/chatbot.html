@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediVoice AI Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-900 to-blue-700 min-h-screen">
+    <div class="container mx-auto px-4 py-8 h-screen flex">
+        <div class="w-full max-w-6xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden flex">
+            <!-- Sidebar -->
+            <div class="w-1/4 bg-gradient-to-b from-gray-900 to-gray-800 text-white p-6">
+                <div class="flex items-center space-x-3 mb-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <h1 class="text-2xl font-bold">MediVoice AI</h1>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h2 class="text-lg font-semibold text-blue-400 mb-2">About</h2>
+                        <p class="text-gray-300 text-sm">Your personal AI medical assistant, providing reliable healthcare information and guidance 24/7.</p>
+                    </div>
+                    
+                    <div>
+                        <h2 class="text-lg font-semibold text-blue-400 mb-2">Features</h2>
+                        <ul class="text-gray-300 text-sm space-y-2">
+                            <li>• Symptom Assessment</li>
+                            <li>• Medical Information</li>
+                            <li>• Drug Information</li>
+                            <li>• Health Tips</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Area -->
+            <div class="flex-1 flex flex-col">
+                <!-- Chat Header -->
+                <div class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800">Medical Assistant</h3>
+                            <p class="text-sm text-green-500">Online</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div id="chat-box" class="flex-1 bg-gray-50 p-6 overflow-y-auto">
+                    <!-- Messages will appear here -->
+                </div>
+
+                <!-- Chat Input -->
+                <div class="bg-white border-t border-gray-200 p-4">
+                    <div class="flex space-x-4">
+                        <input 
+                            type="text" 
+                            id="user-input"
+                            class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Type your medical question..."
+                            onkeydown="if(event.key === 'Enter') document.getElementById('send-button').click()"
+                        >
+                        <button 
+                            id="send-button"
+                            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2"
+                        >
+                            <span>Send</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('send-button').addEventListener('click', function() {
+            const userInput = document.getElementById('user-input').value;
+            if (userInput.trim() !== '') {
+                addMessage('user', userInput);
+                document.getElementById('user-input').value = '';
+                fetch('/get_response', {
+                    method: 'POST',
+                    body: JSON.stringify({ message: userInput }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    addMessage('bot', data.response);
+                });
+            }
+        });
+
+        function addMessage(sender, text) {
+            const chatBox = document.getElementById('chat-box');
+            const message = document.createElement('div');
+            message.classList.add('message', sender);
+            message.textContent = text;
+            chatBox.appendChild(message);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>

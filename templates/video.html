@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediVoice Consultation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-b from-blue-900 to-blue-700 min-h-screen flex flex-col items-center p-8">
+    <div class="w-full max-w-4xl">
+        <h1 class="text-4xl font-bold text-white text-center mb-8">Virtual AI Medical Consultation</h1>
+        
+        <div class="bg-white rounded-lg shadow-xl p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <h2 class="text-2xl font-semibold text-gray-800">Live AI Consultation Feed</h2>
+                </div>
+                <button id="end-call" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                        <path d="M16.707 3.293a1 1 0 010 1.414L15.414 6l1.293 1.293a1 1 0 01-1.414 1.414L14 7.414l-1.293 1.293a1 1 0 11-1.414-1.414L12.586 6l-1.293-1.293a1 1 0 011.414-1.414L14 4.586l1.293-1.293a1 1 0 011.414 0z" />
+                    </svg>
+                    End Call
+                </button>
+            </div>
+            
+            <div class="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                <div class="absolute left-4 top-4 w-32 h-32">
+                </div>
+                <video id="video-feed" class="absolute inset-0 w-full h-full object-cover" autoplay></video>
+                <div class="absolute top-4 right-4 bg-red-500 px-3 py-1 rounded-full text-white text-sm font-medium">
+                    LIVE
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center text-blue-100">
+            <p class="text-lg mb-2">Your secure telemedicine session is active</p>
+            <p class="text-sm opacity-75">Please ensure good lighting and a stable internet connection</p>
+        </div>
+    </div>
+
+    <script>
+        const videoFeed = document.getElementById('video-feed');
+        const endCallButton = document.getElementById('end-call');
+        let videoWs;
+
+        // Initialize WebSocket connection
+        function initializeWebSocket() {
+            videoWs = new WebSocket(`ws://${window.location.host}/ws/video`);
+            
+            videoWs.onmessage = (event) => {
+                const frame = JSON.parse(event.data);
+                if (frame && frame.data) {
+                    const img = `data:${frame.mime_type};base64,${frame.data}`;
+                    videoFeed.src = img;
+                }
+            };
+
+            videoWs.onclose = () => {
+                console.log('WebSocket connection closed');
+                window.location.href = '/home';
+            };
+        }
+
+        // Initialize connection when page loads
+        initializeWebSocket();
+
+        // End call handler with proper cleanup
+        endCallButton.addEventListener('click', () => {
+            if (videoWs && videoWs.readyState === WebSocket.OPEN) {
+                videoWs.close();
+            }
+            window.location.href = '/home';
+        });
+
+        // Handle page unload to ensure connection is closed
+        window.addEventListener('beforeunload', () => {
+            if (videoWs && videoWs.readyState === WebSocket.OPEN) {
+                videoWs.close();
+            }
+        });
+    </script>
+</body>
+</html>
