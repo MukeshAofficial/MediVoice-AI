@@ -1,23 +1,53 @@
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 import asyncio
 import base64
+import json
+import pyaudio
 import io
 import os
 import sys
 import traceback
-
 import cv2
-import pyaudio
 import PIL.Image
-
+from websockets.asyncio.client import connect
+from pathlib import Path
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from google import genai
 from dotenv import load_dotenv
+from pydantic import BaseModel
+import google.generativeai as genaii
+
 
 load_dotenv()
 
+app = FastAPI()
+
+genaii.configure(api_key="API-KEY")
 
 
 
-GOOGLE_API_KEY = "YOUR-API-KEY"
+
+templates = Jinja2Templates(directory="templates")
+
+
+
+class MessageRequest(BaseModel):
+    message: str
+
+@app.post("/get_response")
+async def get_response(request: MessageRequest):
+    user_message = request.message
+    model = genaii.GenerativeModel('gemini-1.5-flash')
+    rply = model.generate_content(f"{user_message} answer in one or 2 lines without any */ symbols for this medical related question ")
+    return {"response": rply.text}
+
+@app.get("/chatbot", response_class=HTMLResponse)
+async def chatbot(request: Request):
+    return templates.TemplateResponse("chatbot.html", {"request": request})
+
+GOOGLE_API_KEY = "API-KEY"
 if not GOOGLE_API_KEY:
     raise ValueError("API_KEY environment variable not set. Check your .env file.")
 
@@ -50,7 +80,7 @@ class AudioLoop:
         self.audio_out_queue = asyncio.Queue()
         self.video_out_queue = asyncio.Queue()
         self.session = None
-        self.conversation_history = []  # Store conversation history
+        self.conversation_history = []
 
     async def send_text(self):
         while True:
@@ -60,7 +90,6 @@ class AudioLoop:
 
             self.conversation_history.append({"role": "user", "parts": [{"text": text}]})
             await self.send_to_gemini()
-
 
     async def send_to_gemini(self):
         try:
@@ -126,7 +155,7 @@ class AudioLoop:
                     for part in server_content.model_turn.parts:
                         if part.text:
                             print(part.text, end="")
-                            self.conversation_history.append({"role": "assistant", "parts": [{"text": part.text}]}) # Add assistant's text response to history
+                            self.conversation_history.append({"role": "assistant", "parts": [{"text": part.text}]})
                         elif part.inline_data:
                             self.audio_in_queue.put_nowait(part.inline_data.data)
                 if server_content and server_content.turn_complete:
@@ -143,23 +172,139 @@ class AudioLoop:
             await asyncio.to_thread(stream.write, bytestream)
 
     async def run(self):
-        self.conversation_history.append({"role": "user", "parts": [{"text": INITIAL_PROMPT}]}) # Send initial prompt
-        async with (
-            client.aio.live.connect(model=MODEL, config=CONFIG) as session
-        ):
+        self.conversation_history.append({"role": "user", "parts": [{"text": INITIAL_PROMPT}]})
+        async with client.aio.live.connect(model=MODEL, config=CONFIG) as session:
             self.session = session
             tasks = [
                 self.send_text(),
                 self.listen_audio(),
                 self.send_audio(),
-                self.get_frames(),  # If you want to enable video input
-                self.send_frames(), # If you want to enable video input
+                self.get_frames(),
+                self.send_frames(),
                 self.receive_audio(),
                 self.play_audio(),
             ]
             await asyncio.gather(*tasks)
 
+class SimpleGeminiVoice:
+    def __init__(self):
+        self.audio_queue = asyncio.Queue()
+        self.api_key = "API-KEY"
+        self.model = "gemini-2.0-flash-exp"
+        self.uri = f"wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key={self.api_key}"
+        self.FORMAT = pyaudio.paInt16
+        self.CHANNELS = 1
+        self.CHUNK = 512
+        self.RATE = 16000
 
-if __name__ == "__main__":
-    main = AudioLoop()
-    asyncio.run(main.run())
+    async def start(self):
+        self.ws = await connect(
+            self.uri, additional_headers={"Content-Type": "application/json"}
+        )
+        await self.ws.send(json.dumps({"setup": {"model": f"models/{self.model}"}}))
+        await self.ws.recv(decode=False)
+        print("Connected to Gemini, You can start talking now")
+
+        tasks = [
+            self.capture_audio(),
+            self.stream_audio(),
+            self.play_response()
+        ]
+        await asyncio.gather(*tasks)
+
+    async def capture_audio(self):
+        audio = pyaudio.PyAudio()
+        stream = audio.open(
+            format=self.FORMAT,
+            channels=self.CHANNELS,
+            rate=self.RATE,
+            input=True,
+            frames_per_buffer=self.CHUNK,
+        )
+
+        while True:
+            data = await asyncio.to_thread(stream.read, self.CHUNK)
+            await self.ws.send(
+                json.dumps(
+                    {
+                        "realtime_input": {
+                            "media_chunks": [
+                                {
+                                    "data": base64.b64encode(data).decode(),
+                                    "mime_type": "audio/pcm",
+                                }
+                            ]
+                        }
+                    }
+                )
+            )
+
+    async def stream_audio(self):
+        async for msg in self.ws:
+            response = json.loads(msg)
+            try:
+                audio_data = response["serverContent"]["modelTurn"]["parts"][0][
+                    "inlineData"
+                ]["data"]
+                self.audio_queue.put_nowait(base64.b64decode(audio_data))
+            except KeyError:
+                pass
+            try:
+                turn_complete = response["serverContent"]["turnComplete"]
+            except KeyError:
+                pass
+            else:
+                if turn_complete:
+                    print("\nEnd of turn")
+                    while not self.audio_queue.empty():
+                        self.audio_queue.get_nowait()
+
+    async def play_response(self):
+        audio = pyaudio.PyAudio()
+        stream = audio.open(
+            format=self.FORMAT, channels=self.CHANNELS, rate=24000, output=True
+        )
+        while True:
+            data = await self.audio_queue.get()
+            await asyncio.to_thread(stream.write, data)
+
+@app.get("/", response_class=HTMLResponse)
+async def get_index(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
+
+@app.get("/live", response_class=HTMLResponse)
+async def get_index(request: Request):
+    return templates.TemplateResponse("live.html", {"request": request})
+
+@app.get("/video", response_class=HTMLResponse) 
+async def get_video(request: Request):
+    return templates.TemplateResponse("video.html", {"request": request})
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    client = SimpleGeminiVoice()
+    await client.start()
+
+    while True:
+        try:
+            message = await websocket.receive_text()
+            print(f"Message from frontend: {message}")
+        except WebSocketDisconnect:
+            print("Client disconnected")
+            break
+
+@app.websocket("/ws/video")
+async def video_websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    audio_loop = AudioLoop()
+    await audio_loop.run()
+
+    while True:
+        try:
+            message = await websocket.receive_text()
+            print(f"Message from frontend: {message}")
+        except WebSocketDisconnect:
+            print("Client disconnected")
+            break
+
